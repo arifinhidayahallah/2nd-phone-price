@@ -1,0 +1,370 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "3280fcfa",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.metrics import root_mean_squared_error\n",
+    "import pandas as pd\n",
+    "import numpy as np\n",
+    "import joblib"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "09bc2641",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "\n",
+    "def decode(chromosome):\n",
+    "\n",
+    "    feature_mask = chromosome[:N_FEATURES].astype(bool)\n",
+    "\n",
+    "    n_estimators = int(chromosome[N_FEATURES])\n",
+    "    max_depth = int(chromosome[N_FEATURES + 1])\n",
+    "    min_split = int(chromosome[N_FEATURES + 2])\n",
+    "    min_leaf = int(chromosome[N_FEATURES + 3])\n",
+    "    max_features_gene = int(chromosome[N_FEATURES + 4])\n",
+    "\n",
+    "    max_features_map = {\n",
+    "        0: 1.0,\n",
+    "        1:\"sqrt\",\n",
+    "        2:\"log2\",\n",
+    "    }\n",
+    "\n",
+    "    params = {\n",
+    "        \"n_estimators\" : n_estimators,\n",
+    "        \"max_depth\" : max_depth,\n",
+    "        \"min_samples_split\": min_split,\n",
+    "        \"min_samples_leaf\": min_leaf,\n",
+    "        \"max_features\": max_features_map[max_features_gene]\n",
+    "    }\n",
+    "\n",
+    "\n",
+    "    return feature_mask, params"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "id": "16c3ee88",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "phones_df = pd.read_csv('datasets/transformed_data/phones.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "ede7b93d",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "Index(['brand', 'architecture', 'audio_jack', 'battery_capacity', 'bluetooth',\n",
+       "       'chipset', 'cpu', 'cpu_cores', 'display_type', 'edge',\n",
+       "       'expandable_memory', 'face_unlock', 'features', 'gprs', 'gps', 'gpu',\n",
+       "       'height', 'internal_storage', 'loudspeaker', 'network', 'notch',\n",
+       "       'operating_system', 'os_version', 'pixel_density',\n",
+       "       'primary_camera_resolution', 'quick_charging', 'ram', 'ram_type',\n",
+       "       'refresh_rate', 'resolution', 'screen_protection', 'screen_size',\n",
+       "       'screen_to_body_ratio', 'sim_size', 'sim_slot', 'speed', 'storage_type',\n",
+       "       'thickness', 'touch_screen', 'usb', 'usb_otg', 'usb_type_c', 'video',\n",
+       "       'volte', 'waterproof', 'weight', 'width', 'wlan', 'released_year',\n",
+       "       'released_month', 'released_day'],\n",
+       "      dtype='str')"
+      ]
+     },
+     "execution_count": 3,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "phones_df.drop(columns=['price']).columns"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "bebe5486",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# categorical_features_df = pd.read_csv('datasets/transformed_data/categorical_features.csv')\n",
+    "# encoder = joblib.load(\"models/features_encoder.pkl\")\n",
+    "# categorical_features\n",
+    "# encoder.dtype\n",
+    "# categorical_features = categorical_features_df['features'].to_list()\n",
+    "# decoded = encoder.inverse_transform(phones_df[categorical_features])\n",
+    "# phones_df[categorical_features] = decoded\n",
+    "# phones_df.shape\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 5,
+   "id": "e6b89dac",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "from sklearn.metrics import r2_score, root_mean_squared_error\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "from sklearn.ensemble import RandomForestRegressor\n",
+    "from sklearn.metrics  import  (\n",
+    "    mean_absolute_error,\n",
+    "    mean_squared_error,\n",
+    "    r2_score\n",
+    ")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "id": "332d9635",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "X_data = phones_df.drop(columns=['price'])\n",
+    "y_data = phones_df['price']\n",
+    "\n",
+    "X, X_test, y, y_test = train_test_split(\n",
+    "    X_data,\n",
+    "    y_data,\n",
+    "    test_size=.1,\n",
+    "    random_state=42\n",
+    ")\n",
+    "\n",
+    "N_FEATURES = len(X.columns)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 8,
+   "id": "14e47a3e",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>\n",
+       "<style scoped>\n",
+       "    .dataframe tbody tr th:only-of-type {\n",
+       "        vertical-align: middle;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe tbody tr th {\n",
+       "        vertical-align: top;\n",
+       "    }\n",
+       "\n",
+       "    .dataframe thead th {\n",
+       "        text-align: right;\n",
+       "    }\n",
+       "</style>\n",
+       "<table border=\"1\" class=\"dataframe\">\n",
+       "  <thead>\n",
+       "    <tr style=\"text-align: right;\">\n",
+       "      <th></th>\n",
+       "      <th>brand</th>\n",
+       "    </tr>\n",
+       "  </thead>\n",
+       "  <tbody>\n",
+       "    <tr>\n",
+       "      <th>0</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>1</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>2</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>3</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>4</th>\n",
+       "      <td>0.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>...</th>\n",
+       "      <td>...</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5812</th>\n",
+       "      <td>7.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5813</th>\n",
+       "      <td>7.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5814</th>\n",
+       "      <td>7.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5815</th>\n",
+       "      <td>7.0</td>\n",
+       "    </tr>\n",
+       "    <tr>\n",
+       "      <th>5816</th>\n",
+       "      <td>7.0</td>\n",
+       "    </tr>\n",
+       "  </tbody>\n",
+       "</table>\n",
+       "<p>5235 rows × 1 columns</p>\n",
+       "</div>"
+      ],
+      "text/plain": [
+       "      brand\n",
+       "0       0.0\n",
+       "1       0.0\n",
+       "2       0.0\n",
+       "3       0.0\n",
+       "4       0.0\n",
+       "...     ...\n",
+       "5812    7.0\n",
+       "5813    7.0\n",
+       "5814    7.0\n",
+       "5815    7.0\n",
+       "5816    7.0\n",
+       "\n",
+       "[5235 rows x 1 columns]"
+      ]
+     },
+     "execution_count": 8,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "X[['brand']].sort_index()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "9bafd2d1",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import numpy as np\n",
+    "\n",
+    "\n",
+    "X = phones_df.drop(columns=['price'])\n",
+    "y = phones_df['price'] \n",
+    "\n",
+    "best_params = np.array([0,0,0,0,0,0,0,0,1,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,1,1,0,0,0,1,1,0,0,1,1,0,0,0,1,1,0,0,463,11,7,1,1])\n",
+    "feature_mask, params = decode(best_params)\n",
+    "selected_features = X.loc[:, feature_mask].columns.to_list()\n",
+    "selected_X = X.loc[:,feature_mask]\n",
+    "\n",
+    "optimized_model = RandomForestRegressor(\n",
+    "    **params,\n",
+    "    random_state=42\n",
+    ")\n",
+    "\n",
+    "optimized_model.fit(selected_X, y)\n",
+    "\n",
+    "X_test = X_test.loc[:,feature_mask]\n",
+    "y_pred = optimized_model.predict(X_test)\n",
+    "\n",
+    "\n",
+    "\n",
+    "mae = mean_absolute_error(y_test, y_pred)\n",
+    "mse = mean_squared_error(y_test, y_pred)\n",
+    "rmse = root_mean_squared_error(y_test, y_pred)\n",
+    "r2 = r2_score(y_test, y_pred)\n",
+    "\n",
+    "print(f\"MAE: {mae}\")\n",
+    "print(f\"MSE: {mse}\")\n",
+    "print(f\"RMSE: {rmse}\")\n",
+    "print(f\"R2 Score: {r2}\")\n",
+    "\n",
+    "importance = pd.DataFrame({\n",
+    "    \"feature\": selected_X.columns,\n",
+    "    \"importance\": optimized_model.feature_importances_\n",
+    "})\n",
+    "\n",
+    "importance = importance.sort_values(\n",
+    "    by=\"importance\",\n",
+    "    ascending=False\n",
+    ")\n",
+    "\n",
+    "print(importance)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "id": "e7c3a538",
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "['models/2nd_phone_price.pkl']"
+      ]
+     },
+     "execution_count": 22,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "import joblib\n",
+    "\n",
+    "joblib.dump(optimized_model, \"models/2nd_phone_price.pkl\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 23,
+   "id": "50179b5a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import json\n",
+    "\n",
+    "metadata = {\n",
+    "    'selected_features': selected_features,\n",
+    "    'hyperparameter': params\n",
+    "}\n",
+    "\n",
+    "with open(\"models/metadata.json\", \"w\") as f:\n",
+    "    json.dump(metadata, f, indent=4)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.14.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
